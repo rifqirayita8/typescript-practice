@@ -29,3 +29,7 @@ export class InternalServerError extends AppError {
       super(message, 500);
   }
 }
+
+export function isAppError(error: unknown): error is AppError {
+  return error instanceof AppError;
+}

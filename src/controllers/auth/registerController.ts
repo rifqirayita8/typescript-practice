@@ -1,23 +1,38 @@
 import { Request, Response, NextFunction } from "express";
+import { isAppError, ValidationError } from "../../utils/customError.js";
 import register from "../../services/auth/registerService.js";
 
-const userRegister= async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-  try {
-    const {username, email, password}= req.body;
+interface RegisterReqBody {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
-    if (!username || !email || !password) {
-      return res.status(400).json({message: "Semua fields wajib diisi."});
+const userRegister= async (
+  req: Request<{},{}, RegisterReqBody>, 
+  res: Response, 
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const {username, email, password, confirmPassword}= req.body;
+
+    if (!username || !email || !password || !confirmPassword) {
+      throw new ValidationError("Semua field harus diisi.");
+    }
+
+    if (password != confirmPassword) {
+      throw new ValidationError("Password dan konfirmasi password tidak sama.");
     }
 
     const user= await register({username, email, password});
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "User berhasil ditambahkan.",
       user: user,
     })
   }catch(error) {
-    return res.status(500).json({message: error});
-    // next(error);
+    next(error);
   }
 }
 
