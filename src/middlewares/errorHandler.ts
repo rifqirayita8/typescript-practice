@@ -6,7 +6,7 @@ import { Prisma } from "@prisma/client";
  const errorHandler= (err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
-      status: "error",
+      status: "false",
       message: err.message,
     });
     
@@ -16,7 +16,7 @@ import { Prisma } from "@prisma/client";
       message: err.message,
     }));
     return res.status(400).json({
-      status: "error",
+      status: "false",
       message: "Data tidak sesuai.",
       error: zodError
     });
@@ -27,14 +27,14 @@ import { Prisma } from "@prisma/client";
       let message= `${fieldName} sudah digunakan. Silakan gunakan ${fieldName} lain.`;
       message= message.charAt(0).toUpperCase() + message.slice(1);
       return res.status(400).json({
-        status: "error",
+        status: "false",
         message: message,
       })
     }
   }
   
   res.status(500).json({
-    status: "error",
+    status: "false",
     message: err.message,
   })
 }
