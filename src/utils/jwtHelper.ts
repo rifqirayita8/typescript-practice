@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { User } from '../models/user.js';
 import fs from 'fs';
 import path from 'path';
@@ -9,7 +9,8 @@ const publicKey= fs.readFileSync(path.resolve(process.env.PUBLIC_KEY_PATH || '')
 export const generateToken= (user:User) => {
   const payload= {
     id: user.id,
-    email: user.email
+    email: user.email,
+    role: user.role,
   };
   const token= jwt.sign(payload, privateKey, {
     algorithm: "RS256",
@@ -18,12 +19,19 @@ export const generateToken= (user:User) => {
   return token;
 }
 
-export const verifyToken= (token:string): object => {
+export const verifyToken= (token:string): { id: number; email: string; role: string } => {
   try {
     const decoded= jwt.verify(token, publicKey, {
       algorithms: ["RS256"]
-    });
-    return decoded as object;
+    }) as JwtPayload;
+
+    if (decoded && typeof decoded === 'object' && 'id' in decoded && 'email' in decoded && 'role' in decoded) {
+      return { id: decoded.id, email: decoded.email, role: decoded.role };
+    
+    } else {
+      throw new Error("Token tidak valid.");
+    }
+
   } catch (err) {
     throw new Error("Token tidak valid.");
   }

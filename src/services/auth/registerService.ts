@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import {createUser} from '../../repositories/auth/authRepository.js';
 import { registerValidation } from '../../validations/auth/registerValidation.js';
 
-  const registerService= async (data:{username: string; email: string; password: string}) => {
+  const registerService= async (data:{username: string; email: string; password: string; role: string}) => {
 
       registerValidation(data);
   

@@ -7,6 +7,7 @@ interface RegisterReqBody {
   email: string;
   password: string;
   confirmPassword: string;
+  role: string;
 }
 
 const userRegister= async (
@@ -15,7 +16,7 @@ const userRegister= async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const {username, email, password, confirmPassword}= req.body;
+    const {username, email, password, confirmPassword, role}= req.body;
 
     if (!username || !email || !password || !confirmPassword) {
       throw new ValidationError("Semua field harus diisi.");
@@ -25,7 +26,7 @@ const userRegister= async (
       throw new ValidationError("Password dan konfirmasi password tidak sama.");
     }
 
-    const user= await registerService({username, email, password});
+    const user= await registerService({username, email, password, role});
 
     res.status(201).json({
       status: "true",
