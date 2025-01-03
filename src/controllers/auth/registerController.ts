@@ -1,17 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { ValidationError } from "../../utils/customError.js";
 import registerService from "../../services/auth/registerService.js";
-
-interface RegisterReqBody {
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  role: string;
-}
+import { User } from "../../models/user.js";
 
 const userRegister= async (
-  req: Request<{},{}, RegisterReqBody>, 
+  req: Request<{},{}, User>, 
   res: Response, 
   next: NextFunction
 ): Promise<void> => {
@@ -31,7 +24,7 @@ const userRegister= async (
     res.status(201).json({
       status: "true",
       message: "User berhasil ditambahkan.",
-      user: user,
+      payload: user,
     })
   }catch(error) {
     next(error);

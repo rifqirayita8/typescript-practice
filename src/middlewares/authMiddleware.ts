@@ -14,6 +14,6 @@ export const authMiddleware= async (req: Request, res: Response, next: NextFunct
     req.user= decoded;
     next();
   } catch (err) {
-    throw new ForbiddenError('Token tidak valid.');
+    res.status(403).json({ status: 'error', message: 'Token invalid' });
   }
 }

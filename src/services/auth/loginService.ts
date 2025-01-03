@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { User } from "../../models/user.js";
-import { findUserByEmail } from "../../repositories/auth/authRepository.js";
+import { findUserByEmail } from "../../repositories/authRepository.js";
 import { loginValidation } from "../../validations/auth/loginValidation.js";
 import { NotFoundError, ValidationError } from "../../utils/customError.js";
 import { generateToken } from "../../utils/jwtHelper.js";

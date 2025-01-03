@@ -2,11 +2,13 @@ import express from 'express';
 import authRouter from './routes/authRoutes.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { Request, Response, NextFunction } from 'express';
+import userManagementRouter from './routes/userManagementRoutes.js';
 
 const app= express();
 
 app.use(express.json());
 app.use('/auth', authRouter);
+app.use('/user-management', userManagementRouter);
 
 const PORT= process.env.APP_PORT;
 
