@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import { User } from "../../models/user.js";
 import { findUserByEmail } from "../../repositories/authRepository.js";
 import { loginValidation } from "../../validations/auth/loginValidation.js";
 import { NotFoundError, ValidationError } from "../../utils/customError.js";
@@ -14,8 +13,8 @@ const loginService= async (data: {email: string, password: string}) => {
     throw new NotFoundError('Email belum terdaftar.');
   }
 
-  const isValidPassowrd= await bcrypt.compare(data.password, user.password);
-  if (!isValidPassowrd) {
+  const isValidPassword= await bcrypt.compare(data.password, user.password);
+  if (!isValidPassword) {
     throw new ValidationError('Password salah.');
   }
 

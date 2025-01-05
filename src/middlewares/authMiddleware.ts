@@ -15,7 +15,8 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
 
   try {
       const decoded= verifyToken(token.split(' ')[1]);
-      req.user= decoded;
+      req.user= decoded as {id:number, email: string, role:string};
+      console.log('DECODED TOD', decoded);
       next();
   } catch(err) {
     return res.status(403).json({ status: 'error', message: 'Token invalid.' });
