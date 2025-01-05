@@ -3,8 +3,8 @@ import { User } from '../models/user.js';
 import fs from 'fs';
 import path from 'path';
 
-const privateKey= fs.readFileSync(path.resolve(process.env.PRIVATE_KEY_PATH || ''), 'utf-8');
-const publicKey= fs.readFileSync(path.resolve(process.env.PUBLIC_KEY_PATH || ''), 'utf-8');
+export const privateKey= fs.readFileSync(path.resolve(process.env.PRIVATE_KEY_PATH || ''), 'utf-8');
+export const publicKey= fs.readFileSync(path.resolve(process.env.PUBLIC_KEY_PATH || ''), 'utf-8');
 
 export const generateToken= (user:User) => {
   const payload= {
@@ -19,25 +19,19 @@ export const generateToken= (user:User) => {
   return token;
 }
 
-export const verifyToken= (token:string): { id: number; email: string; role: string } => {
+interface DecodedToken extends User {
+  iat: number;
+  exp: number;
+}
+
+export const verifyToken= (token:string): DecodedToken  => {
   try {
     const decoded= jwt.verify(token, publicKey, {
       algorithms: ["RS256"]
-    }) as JwtPayload;
-
-    if (decoded && typeof decoded === 'object' && 'id' in decoded && 'email' in decoded && 'role' in decoded) {
-      return { id: decoded.id, email: decoded.email, role: decoded.role };
-    
-    } else {
-      throw new Error("Token tidak valid.");
-    }
+    }) as DecodedToken;
+    return decoded;
 
   } catch (err) {
-    throw new Error("Token tidak valid.");
+    throw new Error('Token tidak valid');
   }
-}
-
-export {
-  privateKey,
-  publicKey
 }

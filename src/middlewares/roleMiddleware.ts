@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from './authMiddleware.js';
+import { ForbiddenError } from '../utils/customError.js';
 
 export const roleMiddleware= (requiredRole:string) => {
-  return (req:Request, res: Response, next: NextFunction):void => {
-    if (!req.user || req.user.role !== requiredRole) {
-      res.status(403).json({
-        status: "false",
-        message: "Anda tidak memiliki akses ke fitur ini."
-      });
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const {role}= req.user || {};
+    if (!role || role !== requiredRole) {
+        throw new ForbiddenError('Anda tidak memiliki akses ke fitur ini.');       
     }
     next();
-  }
+}
 }
