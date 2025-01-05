@@ -15,7 +15,7 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
 
   try {
       const decoded= verifyToken(token.split(' ')[1]);
-      req.user= decoded as {id:number, email: string, role:string};
+      req.user= decoded as {id:number, email: string, role: "admin" | "user"};
       console.log('DECODED TOD', decoded);
       next();
   } catch(err) {

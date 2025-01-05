@@ -9,13 +9,13 @@ const userLogin= async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const {email, password}= req.body;
+    const data= req.body;
 
-    if (!email || !password) {
+    if (!data) {
       throw new ValidationError('Semua field harus diisi.');
     }
 
-    const {token}= await loginService({email, password});
+    const {token}= await loginService(data);
     res.status(200).json({
       status: "true",
       message: "Login berhasil.",

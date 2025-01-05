@@ -7,7 +7,7 @@ const updateUserController= async(req:AuthenticatedRequest, res:Response, next: 
   const {username, email, password} = req.body;
 
   try {
-    const user= await updateUserService(userId, {username, email, password});
+    const user= await updateUserService(userId!, {username, email, password});
     res.status(200).json({
       status: "true",
       message: "User berhasil diupdate.",
