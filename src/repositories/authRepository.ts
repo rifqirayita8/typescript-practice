@@ -1,8 +1,9 @@
 import prisma from "../models/prismaClient.js";
 import { User } from "../models/user.js";
+import { sendWelcomeEmail } from "../utils/emailHelper.js";
 
 export const createUser= async (data: User) => {
-  return await prisma.user.create({
+  const newUser= await prisma.user.create({
     data: {
       username: data.username!,
       email: data.email!,
@@ -10,6 +11,8 @@ export const createUser= async (data: User) => {
       role: data.role
     }
   });
+  await sendWelcomeEmail(newUser.email, newUser.username);
+  return newUser;
 }
 
 export const findUserByEmail= async (email:string) => {
@@ -19,5 +22,3 @@ export const findUserByEmail= async (email:string) => {
     }
   })
 }
-
-//https://vavada-bns2.top/#vs-e808991177665

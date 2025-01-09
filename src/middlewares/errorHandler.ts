@@ -17,7 +17,7 @@ import { Prisma } from "@prisma/client";
     }));
     return res.status(400).json({
       status: "false",
-      message: "Data tidak sesuai.",
+      message: "Validasi Gagal.",
       error: zodError
     });
 
