@@ -3,8 +3,11 @@ import authRouter from './routes/authRoutes.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { Request, Response, NextFunction } from 'express';
 import userManagementRouter from './routes/userManagementRoutes.js';
+import helmet from 'helmet';
 
 const app= express();
+
+app.use(helmet());
 
 app.use(express.json());
 app.use('/auth', authRouter);
