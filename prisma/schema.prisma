@@ -29,3 +29,27 @@ enum Role {
   admin
   user
 }
+
+model Universitas {
+  id          Int               @id @default(autoincrement())
+  nama        String            @unique
+  lokasi      String
+  akreditasi  String
+  universitasJurusan UniversitasJurusan[]
+}
+
+model Jurusan {
+  id          Int               @id @default(autoincrement())
+  nama        String            @unique
+  universitasJurusan UniversitasJurusan[]
+}
+
+model UniversitasJurusan {
+  id           Int          @id @default(autoincrement())
+  universitas  Universitas  @relation(fields: [universitasId], references: [id])
+  universitasId Int
+  jurusan      Jurusan      @relation(fields: [jurusanId], references: [id])
+  jurusanId    Int
+
+  @@unique([universitasId, jurusanId])
+}
