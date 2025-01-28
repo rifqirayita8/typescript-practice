@@ -1,4 +1,4 @@
-import prisma from "../models/prismaClient.js";
+import prisma from "../config/prismaClient.js";
 
 export const createOtp= async (email:string, otp: string, expiresAt: Date) => {
   return prisma.oTP.create({

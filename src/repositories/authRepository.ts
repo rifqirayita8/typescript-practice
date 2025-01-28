@@ -1,4 +1,4 @@
-import prisma from "../models/prismaClient.js";
+import prisma from "../config/prismaClient.js";
 import { User } from "../models/user.js";
 import { sendWelcomeEmail } from "../utils/emailHelper.js";
 

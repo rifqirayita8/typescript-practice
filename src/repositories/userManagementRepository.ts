@@ -1,4 +1,4 @@
-import prisma from "../models/prismaClient.js";
+import prisma from "../config/prismaClient.js";
 import { findUserByEmail } from "./authRepository.js";
 
 export const readAllUser= async(page:number, limit:number) => {
