@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express"
-import getUniversitiesService from "../../services/scraping/scrapeService.js"
+import getUniversitiesService from "../../services/scraping/universityScrapeService.js"
 
 const getUniversitiesController= async(req: Request, res: Response, next: NextFunction) => {
   try {

@@ -11,7 +11,16 @@ export interface UniversityMajor {
 }
 
 export interface ScrapedUniversity {
-  name: string;
+  id: string;
+  universityName: string;
   city: string;
   province: string;
+  // detailUrl?: string;
+  // majors: ScrapedMajor[];
+}
+
+export interface ScrapedMajor {
+  name: string;
+  quota: string;
+  applicants: string;
 }
