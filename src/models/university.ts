@@ -24,3 +24,7 @@ export interface ScrapedMajor {
   quota: string;
   applicants: string;
 }
+
+export interface UniversityCoba {
+  name: string;
+}
