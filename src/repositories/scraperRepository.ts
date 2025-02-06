@@ -183,42 +183,86 @@ export async function scrapePTN() {
 // }
 
 export const cobaDua = async() => { 
-  const browser= await puppeteer.launch({
+  const browser = await puppeteer.launch({
     headless: false,
     userDataDir: './tmp'
+  });
+
+  const page = await browser.newPage();
+  await page.setViewport({
+    width: 1920,
+    height: 1080,
+    deviceScaleFactor: 1,
   })
-  const page= await browser.newPage();
   await page.goto('https://pddikti.kemdiktisaintek.go.id/perguruan-tinggi', {
     waitUntil: 'networkidle2',
     timeout: 0
-  })
-
-
-  await page.waitForSelector('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div')
-  await page.evaluate(() => {
-    document.getElementById(':r8:')?.click();
   });
-  await page.select('select[name="pagination"]', '48')
-  await page.waitForSelector('div.relative.h-24.flex.items-center > div > div > p')
 
-  const productsHandles= await page.$$('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div')
-  try {
-    const universities:UniversityCoba[]= [];
-    for(const productHandle of productsHandles) {
-      const title= await page.evaluate(el => el.querySelector('div.relative.h-24.flex.items-center > div > div > p')?.textContent, productHandle)
-      if (title) {
-        universities.push({
-          name: title
-        })
-      } else {
-        universities.push({
-          name: "Undefined"
-        })
-      }
-      console.log(title)
+  //container
+  await page.waitForSelector('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div');
+
+  await page.waitForSelector('#\\:r8\\:'); 
+  await page.click('#\\:r8\\:');
+  
+
+  await page.select('select[name="pagination"]', '48');
+
+  const universities: UniversityCoba[] = [];
+
+  while (true) { 
+    await page.waitForSelector('div.relative.h-24.flex.items-center > div > div > p');
+    
+   
+    await page.waitForFunction(() => {
+      const el = document.querySelector('div.grid.grid-cols-2.gap-3.px-4.text-sm > div:nth-child(3) > p');
+      return el && el.textContent?.trim() !== "...";
+    });
+
+    // Ambil semua universitas di halaman ini
+    const productsHandles = await page.$$('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div');
+    
+    for (const productHandle of productsHandles) {
+      const data = await page.evaluate(el => {
+        if (!el) return { name: '', alamat: '', biaya: '', accred: '', major: '', passPercentage: '' };
+    
+        const titleElement = el.querySelector('div.relative.h-24.flex.items-center > div > div > p');
+        const locationElement = el.querySelector('div.px-4.mt-1.text-sm > h5');
+        const feeElement = el.querySelector('div:nth-child(3) > div > p');
+        const accredElement = el.querySelector('div.grid.grid-cols-2.gap-3.px-4.text-sm > div:nth-child(1) > p');
+        const majorElement = el.querySelector('div.grid.grid-cols-2.gap-3.px-4.text-sm > div:nth-child(2) > p');
+        const passPercentageElement = el.querySelector('div.grid.grid-cols-2.gap-3.px-4.text-sm > div:nth-child(3) > p');
+    
+        return {
+          name: titleElement?.textContent?.trim() || '',
+          alamat: locationElement?.textContent?.trim() || '',
+          biaya: feeElement?.textContent?.trim() || '',
+          accred: accredElement?.textContent?.trim() || '',
+          major: majorElement?.textContent?.trim() || '',
+          passPercentage: passPercentageElement?.textContent?.trim() || ''
+        };
+      }, productHandle);
+    
+      universities.push(data);
     }
-    return universities;
-  } catch(e) {
-    console.log(e)
+
+    // Cek apakah tombol "Next" aktif
+    const isNextDisabled = await page.evaluate(() => {
+      const nextButton = document.querySelector('div.flex.align-end.items-center.justify-end.gap-1 > button:nth-child(3)');
+      return nextButton?.hasAttribute('disabled') || false;
+    });
+
+    if (isNextDisabled) break; // Keluar dari loop jika tidak bisa next
+
+    // Klik tombol Next
+    // Tunggu tombol "Next" muncul sebelum klik
+await page.waitForSelector('div.flex.align-end.items-center.justify-end.gap-1 > button:nth-child(3)', { visible: true });
+
+// Klik tombol Next
+await page.click('div.flex.align-end.items-center.justify-end.gap-1 > button:nth-child(3)');
+
   }
-}
+
+  return universities;
+};
+

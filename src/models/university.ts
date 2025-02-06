@@ -27,4 +27,9 @@ export interface ScrapedMajor {
 
 export interface UniversityCoba {
   name: string;
+  alamat: string;
+  biaya: string;
+  accred: string;
+  major: string;
+  passPercentage: string;
 }
