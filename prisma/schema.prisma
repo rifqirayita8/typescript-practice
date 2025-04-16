@@ -31,10 +31,13 @@ enum Role {
 }
 
 model Universitas {
-  id          Int               @id @default(autoincrement())
-  nama        String            @unique
-  lokasi      String
-  akreditasi  String
+  id              Int               @id @default(autoincrement())
+  name            String            @unique @map("name")
+  address         String            @map("address")
+  tuition_fee     String?
+  accreditation   String            @map("accreditation")
+  major_count     String?
+  pass_percentage String?
   universitasJurusan UniversitasJurusan[]
 }
 

@@ -1,4 +1,6 @@
 import axios from 'axios';
+import fs from 'fs';
+import Papa from 'papaparse';
 import * as cheerio from 'cheerio';
 import puppeteer, { Browser, Page, ElementHandle } from 'puppeteer';
 import { ScrapedMajor, ScrapedUniversity } from '../models/university.js';
@@ -262,7 +264,118 @@ await page.waitForSelector('div.flex.align-end.items-center.justify-end.gap-1 > 
 await page.click('div.flex.align-end.items-center.justify-end.gap-1 > button:nth-child(3)');
 
   }
+  
+  const formattedUniversities = universities.map(uni => ({
+    name: `"${uni.name}"`,
+    alamat: `${uni.alamat}`,
+    biaya: `${uni.biaya}`,
+    accred: `${uni.accred}`,
+    major: `${uni.major}`,
+    passPercentage: `${uni.passPercentage}`
+  }));
+  
+  const csv = Papa.unparse(formattedUniversities, {
+    header: false,
+    quotes: true,
+  });
+  
+  fs.writeFileSync('PTN.csv', csv);
+  
 
   return universities;
 };
 
+
+//gaisoo
+export const cobaTiga = async () => { 
+  const browser = await puppeteer.launch({
+    headless: false,
+    userDataDir: './tmp',
+  });
+
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1920, height: 1080 });
+
+  await page.goto('https://pddikti.kemdiktisaintek.go.id/perguruan-tinggi', {
+    waitUntil: 'networkidle2',
+    timeout: 0
+  });
+
+  // Tunggu container utama
+  await page.waitForSelector('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div');
+
+  // Pilih pagination 48 per halaman
+  await page.select('select[name="pagination"]', '48');
+
+  const allMajors: string[][] = []; // Array untuk menyimpan jurusan per universitas
+
+  while (true) { 
+    await page.waitForSelector('div.relative.h-24.flex.items-center > div > div > p');
+
+    const universityHandles = await page.$$('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div');
+    
+    for (const universityHandle of universityHandles) {
+      const detailButton = await universityHandle.$('div:nth-child(4) > div > button.border-\[1px\].border-primary-main.hover\:border-none.rounded-md.cursor-pointer.text-center.bg-neutral-10.hover\:bg-gradient-to-r.from-linear-main-1.to-linear-main-2.flex.justify-center.items-center.text-primary-main.hover\:text-neutral-10.w-\[200px\].h-14');
+      
+      if (detailButton) {
+        await detailButton.click();
+        await page.waitForNavigation({ waitUntil: 'networkidle2' });
+
+        // Ambil jurusan dari halaman detail
+        const majors = await page.evaluate(() => {
+          return Array.from(document.querySelectorAll('div.px-6 > div:nth-child(2) > div > div > div > h1'))
+            .map(el => el.textContent?.trim() || '');
+        });
+
+        allMajors.push(majors);
+
+        // Kembali ke halaman utama
+        await page.goBack();
+        await page.waitForSelector('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div');
+      }
+    }
+
+    // Cek apakah tombol "Next" masih bisa diklik
+    const isNextDisabled = await page.evaluate(() => {
+      const nextButton = document.querySelector('button img[alt="right"]');
+      return nextButton?.closest('button')?.hasAttribute('disabled') || false;
+    });
+
+    if (isNextDisabled) break;
+
+    await page.click('button img[alt="right"]');
+    await page.waitForNavigation({ waitUntil: 'networkidle2' });
+  }
+
+  return allMajors;
+};
+
+
+//consumePython
+export const pythonScrape= async(keyword: string) => {
+   const BASE_URL= 'https://api-pddikti.kemdiktisaintek.go.id'
+  //  const link= `${BASE_URL}/pt/search?nama=${encodeURIComponent(keyword)}`
+  const link= `${BASE_URL}/pencarian/pt/${encodeURIComponent(keyword)}`
+   const response= await axios.get(link, {
+    headers: {
+      "Accept": "application/json, text/plain, */*",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9,mt;q=0.8",
+      "Connection": "keep-alive",
+      "DNT": "1",
+      "Host": "api-pddikti.kemdiktisaintek.go.id",
+      "Origin": "https://pddikti.kemdiktisaintek.go.id",
+      "Referer": "https://pddikti.kemdiktisaintek.go.id/",
+      "Sec-Fetch-Dest": "empty",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Site": "same-site",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+      "X-User-IP": "103.47.132.29",
+      "sec-ch-ua": '"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": '"Windows"',
+    }
+   });
+   console.log('link:', link)
+  return response.data;
+}
