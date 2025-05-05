@@ -5,6 +5,9 @@ interface ParsedUniversitas {
   accreditation: 'A' | 'B' | 'C' | string;
   tuition_fee: number | null;
   pass_percentage: number | null;
+  latitude: number;
+  longitude: number;
+  major_count: number | null;
 }
 
 const akreditasiMap: Record<string, 'A' | 'B' | 'C'> = {
@@ -25,6 +28,11 @@ function parseBiaya(biaya: string): [number | null, number | null, number | null
   const avg = min && max ? (min + max) / 2 : null;
   
   return [min, max, avg];
+}
+
+function parseJurusan(jurusan: string): number | null {
+  const match= jurusan.match(/\d+/);
+  return match ? parseInt(match[0], 10) : null;
 }
 
 function parsePersentase(persen: string): number | null {
@@ -48,12 +56,16 @@ export async function getParsedUniversitas(): Promise<ParsedUniversitas[]> {
     const [tuition_fee_min, tuition_fee_max, tuition_fee] = parseBiaya(univ.tuition_fee ?? "Rp. 0,-");
     const pass_percentage = parsePersentase(univ.pass_percentage ?? "0%");
     const accreditation = parseAkreditasi(univ.accreditation);
+    const major_count = parseJurusan(univ.major_count ?? "0");
 
     return {
       name: univ.name,
       accreditation,
       tuition_fee,
       pass_percentage,
+      latitude: univ.latitude,
+      longitude: univ.longitude,
+      major_count
     };
   });
 }

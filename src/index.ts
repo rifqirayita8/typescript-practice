@@ -5,8 +5,13 @@ import { Request, Response, NextFunction } from 'express';
 import userManagementRouter from './routes/userManagementRoutes.js';
 import helmet from 'helmet';
 import scrapeRoutes from './routes/scrapeRoutes.js';
+import ahpRouter from './routes/ahpRoutes.js';
+import datamasterRouter from './routes/datamasterRoutes.js';
+import bookmarkRouter from './routes/bookmarkRoutes.js';
+import cors from 'cors';
 
 const app= express();
+app.use(cors())
 
 app.use(helmet());
 
@@ -14,6 +19,9 @@ app.use(express.json());
 app.use('/auth', authRouter);
 app.use('/user-management', userManagementRouter);
 app.use('/scrape', scrapeRoutes);
+app.use('/ahp', ahpRouter);
+app.use('/datamaster', datamasterRouter);
+app.use('/bookmark', bookmarkRouter);
 
 const PORT= process.env.APP_PORT;
 

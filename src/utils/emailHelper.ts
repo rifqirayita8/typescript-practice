@@ -9,12 +9,34 @@ export const sendWelcomeEmail= async(to:string, username:string) => {
     }
   });
 
-  const mailOptions= {
+  const mailOptions = {
     from: process.env.EMAIL,
     to,
-    subject: 'Selamat Bergabung!',
-    html: `<h1>Selamat datang, ${username}!</h1><p>Terima kasih telah bergabung dengan kami.</p>`
+    subject: 'Selamat Bergabung di RkomKampus!',
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;">
+        <h2 style="color: #4CAF50;">Halo, ${username} 👋</h2>
+        <p>Selamat datang di <strong>RkomKampus</strong> – platform terbaik untuk membantumu memilih perguruan tinggi impian! 🎓</p>
+        <p>Kami sangat senang kamu telah bergabung. Jelajahi berbagai universitas, temukan jurusan yang tepat, dan capai cita-citamu bersama kami.</p>
+        <p style="margin: 20px 0;">
+          <a href="https://university-app-fe.vercel.app/" style="
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+          ">
+            Mulai Sekarang
+          </a>
+        </p>
+        <p>Kalau ada pertanyaan, jangan ragu buat hubungi kami kapan saja.</p>
+        <p>Salam hangat,<br/>Tim RkomKampus</p>
+      </div>
+    `
   };
+  
 
   await transporter.sendMail(mailOptions);
 }

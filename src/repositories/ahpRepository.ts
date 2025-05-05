@@ -7,6 +7,9 @@ export async function findAllUniversitas() {
       tuition_fee: true,
       accreditation: true,
       pass_percentage: true,
+      latitude: true,
+      longitude: true,
+      major_count: true,
     },
   });
 }
