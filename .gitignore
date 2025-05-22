@@ -1,4 +1,17 @@
 node_modules
+tmp
 # Keep environment variables out of version control
 .env
 private.key
+page.html
+# Ignore log files
+biayaGabungan.json
+debugData.json
+distanceOnly.json
+normalizedBiaya.json
+tripletAkreditasi.json
+tripletBiaya.json
+tripletJarak.json
+tripletJumlahJurusan.json
+tripletPassRate.json
+tuition_fee_parser.json

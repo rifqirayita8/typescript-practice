@@ -9,11 +9,19 @@ const userRegister= async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const {username, email, password, confirmPassword, role}= req.body;
+    const { username, email, password, confirmPassword, role = 'user' } = req.body;
 
-    if (!username || !email || !password || !confirmPassword) {
-      throw new ValidationError("Semua field harus diisi.");
-    }
+    const missingFields: string[] = [];
+
+if (!username) missingFields.push("username");
+if (!email) missingFields.push("email");
+if (!password) missingFields.push("password");
+if (!confirmPassword) missingFields.push("confirmPassword");
+
+if (missingFields.length > 0) {
+  throw new ValidationError(`Field berikut harus diisi: ${missingFields.join(", ")}`);
+}
+
 
     if (password != confirmPassword) {
       throw new ValidationError("Password dan konfirmasi password tidak sama.");
