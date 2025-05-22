@@ -1,4 +1,5 @@
 import { findAllUniversitas } from "../repositories/ahpRepository.js";
+import fs from "fs";
 
 interface ParsedUniversitas {
   name: string;
@@ -24,7 +25,6 @@ function parseBiaya(biaya: string): [number | null, number | null, number | null
   const min = toNumber(matches[0]);
   const max = matches[1] ? toNumber(matches[1]) : min;
   
-  // Hitung rata-rata biaya
   const avg = min && max ? (min + max) / 2 : null;
   
   return [min, max, avg];
@@ -37,7 +37,7 @@ function parseJurusan(jurusan: string): number | null {
 
 function parsePersentase(persen: string): number | null {
   if (!persen || persen.trim() === "..." || !/\d/.test(persen)) {
-    return 40; // default netral
+    return 50; 
   }
 
   const match = persen.match(/[\d.]+/);
@@ -51,6 +51,8 @@ function parseAkreditasi(akreditasi: string): string {
 
 export async function getParsedUniversitas(): Promise<ParsedUniversitas[]> {
   const rawUniversitas = await findAllUniversitas();
+  const tuition_fee = rawUniversitas.map((univ) => univ.tuition_fee);
+  fs.writeFileSync("tuition_fee_parser.json", JSON.stringify(tuition_fee, null, 2));
 
   return rawUniversitas.map((univ) => {
     const [tuition_fee_min, tuition_fee_max, tuition_fee] = parseBiaya(univ.tuition_fee ?? "Rp. 0,-");

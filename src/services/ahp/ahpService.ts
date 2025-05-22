@@ -1,4 +1,5 @@
 import AHP from "ahp";
+import fs from "fs";
 import { getDistance } from "geolib";
 import { getParsedUniversitas } from "../../utils/universityParser.js";
 
@@ -26,24 +27,41 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
       tuition_fee: d.tuition_fee!, 
       accreditation: d.accreditation,
       pass_percentage: d.pass_percentage!,
-      distance,
+      distance: +(distance / 1000).toFixed(2),
       major_count: d.major_count!,
     }
   });
+
+  const distancesOnly = parsed.map(d => ({
+  name: d.name,
+  distance: d.distance
+}));
+
+// fs.writeFileSync('distanceOnly.json', JSON.stringify(distancesOnly, null, 2));
+
+
+  parsed.forEach(p => {
+    if (isNaN(p.tuition_fee)) {
+      console.log(`Tuition fee error at ${p.name}:`, p.tuition_fee);
+    }
+  });
+  
   
   const universitas = parsed.map(p => p.name);
   const maxBiaya = Math.max(...parsed.map(p => p.tuition_fee));
+  const minBiaya = Math.min(...parsed.map(p => p.tuition_fee));
   const maxRate = Math.max(...parsed.map(p => p.pass_percentage));
   const maxDistance = Math.max(...parsed.map(p => p.distance));
+  const minDistance = Math.min(...parsed.map(p => p.distance));
   const maxMajorCount = Math.max(...parsed.map(p => p.major_count)); 
 
   const normalized = parsed.map(p => ({
     ...p,
     accreditation: p.accreditation,
-    biaya: maxBiaya / p.tuition_fee, 
-    passRate: (p.pass_percentage / maxRate) * 9,
-    distanceScore: maxDistance / p.distance,
-    major_count: p.major_count / maxMajorCount
+    biaya: (maxBiaya-p.tuition_fee) / (maxBiaya-minBiaya),
+    passRate: (p.pass_percentage / maxRate),
+    distanceScore: (maxDistance - p.distance) / (maxDistance - minDistance),
+    major_count: p.major_count / maxMajorCount,
   }));
 
   ahp.addItems(universitas);
@@ -61,6 +79,9 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
 
   function createTriplets(criterion: string) {
     const triplets: [string, string, number][] = [];
+    const biayaGabungan: string[] = [];
+    const debugData: any[] = [];
+
   
     for (let i = 0; i < normalized.length; i++) {
       for (let j = i + 1; j < normalized.length; j++) {
@@ -70,23 +91,22 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
         let valA: number;
         let valB: number;
   
-        // MAPPING nama kriteria
         switch (criterion) {
           case 'akreditasi':
-            valA = akreditasiToScore(a.accreditation);
-            valB = akreditasiToScore(b.accreditation);
+            valA = akreditasiToScore(a.accreditation) / 9;
+            valB = akreditasiToScore(b.accreditation) / 9;
             break;
           case 'biaya':
-            valA = a.biaya;
-            valB = b.biaya;
+            valA = a.biaya
+            valB = b.biaya
             break;
           case 'passRate':
-            valA = a.passRate;
-            valB = b.passRate;
+            valA = a.passRate === 0 ? 1 : a.passRate;
+            valB = b.passRate === 0 ? 1 : b.passRate; 
             break;
           case 'jarak':
-            valA = a.distanceScore;
-            valB = b.distanceScore;
+            valA = a.distanceScore
+            valB = b.distanceScore
             break;
           case 'jumlahJurusan':
             valA = a.major_count;
@@ -95,14 +115,50 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
           default:
             throw new Error(`Unknown criterion: ${criterion}`);
         }
+
+
+        const gabungan = `biayaA (${a.name}): ${a.biaya}, biayaB (${b.name}): ${b.biaya}`;
+        biayaGabungan.push(gabungan);
   
-        const ratio = valA / valB;
+        let ratio: number;
+          if (valA >= valB) {
+            ratio = Math.min(valA / valB, 9);
+          } else {
+            ratio = 1 / Math.min(valB / valA, 9);
+          }
+
         triplets.push([a.name, b.name, ratio]);
+
+              debugData.push({
+                criterion,
+        universitasA: a.name,
+        valA,
+        universitasB: b.name,
+        valB,
+        ratio,
+      });
+
+
       }
     }
+// fs.writeFileSync('biayaGabungan.json', JSON.stringify(biayaGabungan, null, 2));
+// fs.writeFileSync('debugData.json', JSON.stringify(debugData, null, 2));
+
   
     return triplets;
   }
+
+    const tripletAkreditasi = createTriplets('akreditasi');
+    const tripletBiaya = createTriplets('biaya');
+    const tripletPassRate = createTriplets('passRate');
+    const tripletJarak = createTriplets('jarak');
+    const tripletJumlahJurusan = createTriplets('jumlahJurusan');
+    fs.writeFileSync('tripletAkreditasi.json', JSON.stringify(tripletAkreditasi, null, 2));
+    fs.writeFileSync('tripletBiaya.json', JSON.stringify(tripletBiaya, null, 2));
+    fs.writeFileSync('tripletPassRate.json', JSON.stringify(tripletPassRate, null, 2));
+    fs.writeFileSync('tripletJarak.json', JSON.stringify(tripletJarak, null, 2));
+    fs.writeFileSync('tripletJumlahJurusan.json', JSON.stringify(tripletJumlahJurusan, null, 2));
+    
   
 
 
@@ -117,9 +173,22 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
   ahp.rankCriteria(criteriaWeights);
 
   const result = ahp.run();
-  // const parsedBiaya= parsed.map(p => p.tuition_fee);
+  const normalizedBiaya = normalized.map(p => p.biaya);
+  // const tuition_fee = parsed.map(p => p.tuition_fee);
+  // fs.writeFileSync('normalizedBiaya.json', JSON.stringify(normalizedBiaya, null, 2));
+  // console.log("normalized: ", normalized.map(p => p.biaya));
+  console.log('minBiaya:', minBiaya);
+  console.log('maxBiaya:', maxBiaya);
+  console.log('maxJumlahJurusan:', maxMajorCount);
+  console.log('maxPassRate:', maxRate);
+  console.log('maxDistance:', maxDistance);
+  console.log('minDistance:', minDistance);
+  // console.log('tuition_fee:', tuition_fee);
+  // console.log('normalizedBiaya', normalized.map(p => p.biaya));
+  // console.log('Triplets jurusan:', createTriplets('jumlahJurusan'));
+
   // console.log(JSON.stringify(result, null, 2));
-  console.log("hasil: ", result);
+  // console.log("hasil: ", result);
   return result;
  
 
