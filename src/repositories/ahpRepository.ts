@@ -10,6 +10,7 @@ export async function findAllUniversitas() {
       latitude: true,
       longitude: true,
       major_count: true,
+      acceptanceRate: true,
     },
   });
 }

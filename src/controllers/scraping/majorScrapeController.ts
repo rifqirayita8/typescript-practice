@@ -9,6 +9,7 @@ const majorScrapeController= async (req:Request, res:Response, next:NextFunction
       universitiesId= universitiesId.substring(1);
     }
     const url= `https://sidatagrun-public-1076756628210.asia-southeast2.run.app/ptn_sb.php?ptn=${universitiesId}`;
+    // const urlPolytechnics= 'https://sidatagrun-public-1076756628210.asia-southeast2.run.app/ptn_sb.php?ptn='
     
     const majors= await majorScrapeService(url);
     res.status(200).json({

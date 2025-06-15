@@ -35,6 +35,7 @@ model Universitas {
   name               String               @unique @map("name")
   latitude           Float                @map("latitude")
   longitude          Float                @map("longitude")
+  acceptanceRate     Float?
   universitasJurusan UniversitasJurusan[]
   bookmarks       Bookmark[]
 }

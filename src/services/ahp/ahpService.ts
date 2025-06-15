@@ -2,10 +2,12 @@ import AHP from "ahp";
 import fs from "fs";
 import { getDistance } from "geolib";
 import { getParsedUniversitas } from "../../utils/universityParser.js";
+import { val } from "cheerio/dist/commonjs/api/attributes.js";
 
-const ahp = new AHP();
 
 export async function rankUniversitas(criteriaWeights: [string, string, number][], userLat: number, userLong:number) {
+const ahp = new AHP();
+
   const data = await getParsedUniversitas();
 
   const filtered = data.filter(d =>
@@ -14,7 +16,8 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
     d.accreditation !== null &&
     d.latitude && 
     d.longitude &&
-    d.major_count !== null
+    d.major_count !== null &&
+    d.acceptance_rate !== null
   );
 
   const parsed = filtered.map(d => {
@@ -29,6 +32,7 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
       pass_percentage: d.pass_percentage!,
       distance: +(distance / 1000).toFixed(2),
       major_count: d.major_count!,
+      acceptance_rate: d.acceptance_rate!,
     }
   });
 
@@ -46,6 +50,17 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
     }
   });
   
+  function getDistanceScore(distance: number): number {
+  const smoothScore = 1 / (1 + distance / 1000);
+  const maxDistanceAllowed = 1500;
+
+  if (distance > maxDistanceAllowed) {
+    return smoothScore * 0.5; 
+  }
+
+  return smoothScore;
+}
+
   
   const universitas = parsed.map(p => p.name);
   const maxBiaya = Math.max(...parsed.map(p => p.tuition_fee));
@@ -54,19 +69,25 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
   const maxDistance = Math.max(...parsed.map(p => p.distance));
   const minDistance = Math.min(...parsed.map(p => p.distance));
   const maxMajorCount = Math.max(...parsed.map(p => p.major_count)); 
+  const minAcceptanceRate = Math.min(...parsed.map(p => p.acceptance_rate));
+  const maxAcceptanceRate= Math.max(...parsed.map(p => p.acceptance_rate));
 
   const normalized = parsed.map(p => ({
     ...p,
     accreditation: p.accreditation,
     biaya: (maxBiaya-p.tuition_fee) / (maxBiaya-minBiaya),
     passRate: (p.pass_percentage / maxRate),
-    distanceScore: (maxDistance - p.distance) / (maxDistance - minDistance),
+    // distanceScore: (maxDistance - p.distance) / (maxDistance - minDistance),
+    distanceScore: getDistanceScore(p.distance), 
     major_count: p.major_count / maxMajorCount,
+    acceptance_rate: (100 - p.acceptance_rate) / (100 - minAcceptanceRate)
   }));
+
+  // fs.writeFileSync('acceptanceRate.json', JSON.stringify(parsed.map(p => p.acceptance_rate), null, 2));
 
   ahp.addItems(universitas);
 
-  ahp.addCriteria(['akreditasi', 'biaya', 'passRate', 'jarak', 'jumlahJurusan']);
+  ahp.addCriteria(['akreditasi', 'biaya', 'tingkatKeterimaan', 'jarak', 'jumlahJurusan']);
   
   function akreditasiToScore(akreditasi: string): number {
     switch (akreditasi.toUpperCase()) {
@@ -100,9 +121,9 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
             valA = a.biaya
             valB = b.biaya
             break;
-          case 'passRate':
-            valA = a.passRate === 0 ? 1 : a.passRate;
-            valB = b.passRate === 0 ? 1 : b.passRate; 
+          case 'tingkatKeterimaan':
+            valA = a.acceptance_rate;
+            valB = b.acceptance_rate; 
             break;
           case 'jarak':
             valA = a.distanceScore
@@ -117,28 +138,31 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
         }
 
 
-        const gabungan = `biayaA (${a.name}): ${a.biaya}, biayaB (${b.name}): ${b.biaya}`;
-        biayaGabungan.push(gabungan);
+        // const gabungan = `biayaA (${a.name}): ${a.biaya}, biayaB (${b.name}): ${b.biaya}`;
+        // biayaGabungan.push(gabungan);
   
-        let ratio: number;
-          if (valA >= valB) {
-            ratio = Math.min(valA / valB, 9);
-          } else {
-            ratio = 1 / Math.min(valB / valA, 9);
-          }
+        // let ratio: number;
+        //   if (valA >= valB) {
+        //     ratio = Math.min(valA / valB, 9);
+        //   } else {
+        //     ratio = 1 / Math.min(valB / valA, 9);
+        //   }
 
-        triplets.push([a.name, b.name, ratio]);
+        const diff= valA - valB;
+        const scalingFactor= 5;
+        const ratio= Math.exp(diff * scalingFactor);
+        const clampedRatio= Math.min(Math.max(ratio, 1/9), 9)
 
-              debugData.push({
-                criterion,
+        triplets.push([a.name, b.name, clampedRatio]);
+
+      debugData.push({
+        criterion,
         universitasA: a.name,
         valA,
         universitasB: b.name,
         valB,
         ratio,
       });
-
-
       }
     }
 // fs.writeFileSync('biayaGabungan.json', JSON.stringify(biayaGabungan, null, 2));
@@ -150,12 +174,12 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
 
     const tripletAkreditasi = createTriplets('akreditasi');
     const tripletBiaya = createTriplets('biaya');
-    const tripletPassRate = createTriplets('passRate');
+    const tripletTingkatKeterimaan = createTriplets('tingkatKeterimaan');
     const tripletJarak = createTriplets('jarak');
     const tripletJumlahJurusan = createTriplets('jumlahJurusan');
     fs.writeFileSync('tripletAkreditasi.json', JSON.stringify(tripletAkreditasi, null, 2));
     fs.writeFileSync('tripletBiaya.json', JSON.stringify(tripletBiaya, null, 2));
-    fs.writeFileSync('tripletPassRate.json', JSON.stringify(tripletPassRate, null, 2));
+    fs.writeFileSync('triplettingkatKeterimaan.json', JSON.stringify(tripletTingkatKeterimaan, null, 2));
     fs.writeFileSync('tripletJarak.json', JSON.stringify(tripletJarak, null, 2));
     fs.writeFileSync('tripletJumlahJurusan.json', JSON.stringify(tripletJumlahJurusan, null, 2));
     
@@ -165,24 +189,26 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
 
   ahp.rankCriteriaItem('akreditasi', createTriplets('akreditasi'));
   ahp.rankCriteriaItem('biaya', createTriplets('biaya'));
-  ahp.rankCriteriaItem('passRate', createTriplets('passRate'));
+  ahp.rankCriteriaItem('tingkatKeterimaan', createTriplets('tingkatKeterimaan'));
   ahp.rankCriteriaItem('jarak', createTriplets('jarak'));
   ahp.rankCriteriaItem('jumlahJurusan', createTriplets('jumlahJurusan'));
   
 
-  ahp.rankCriteria(criteriaWeights);
+  const criteriaRankMatrix= ahp.rankCriteria(criteriaWeights);
+  console.log('criteriaWeights:', criteriaRankMatrix);
 
   const result = ahp.run();
   const normalizedBiaya = normalized.map(p => p.biaya);
   // const tuition_fee = parsed.map(p => p.tuition_fee);
   // fs.writeFileSync('normalizedBiaya.json', JSON.stringify(normalizedBiaya, null, 2));
   // console.log("normalized: ", normalized.map(p => p.biaya));
-  console.log('minBiaya:', minBiaya);
-  console.log('maxBiaya:', maxBiaya);
-  console.log('maxJumlahJurusan:', maxMajorCount);
-  console.log('maxPassRate:', maxRate);
-  console.log('maxDistance:', maxDistance);
-  console.log('minDistance:', minDistance);
+  // console.log('minBiaya:', minBiaya);
+  // console.log('maxBiaya:', maxBiaya);
+  // console.log('maxJumlahJurusan:', maxMajorCount);
+  // console.log('maxtingkatKeterimaan:', maxAcceptanceRate);
+  // console.log('maxDistance:', maxDistance);
+  // console.log('minDistance:', minDistance);
+  console.log("criteriaWeights (backend):", criteriaWeights);
   // console.log('tuition_fee:', tuition_fee);
   // console.log('normalizedBiaya', normalized.map(p => p.biaya));
   // console.log('Triplets jurusan:', createTriplets('jumlahJurusan'));
@@ -196,7 +222,7 @@ export async function rankUniversitas(criteriaWeights: [string, string, number][
 // console.log("biaya: ", parsed.map(p => p.tuition_fee));
 // console.log("nama: ", parsed.map(p => p.name));
 // console.log("akreditasi: ", parsed.map(p => p.accreditation));
-// console.log("passRate: ", parsed.map(p => p.pass_percentage));
+// console.log("tingkatKeterimaan: ", parsed.map(p => p.pass_percentage));
 // console.log("jumlahJurusan: ", parsed.map(p => p.major_count));
 // console.log("jarak", parsed.map(p => p.distance));
 // console.log("akreditasi: ", parsed.map(p => p.accreditation));

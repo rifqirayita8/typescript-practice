@@ -184,7 +184,7 @@ export async function scrapePTN() {
 //   } 
 // }
 
-export const cobaDua = async() => { 
+export const scrapePddikti = async() => { 
   const browser = await puppeteer.launch({
     headless: false,
     userDataDir: './tmp'

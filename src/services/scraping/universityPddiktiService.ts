@@ -1,7 +1,7 @@
-import { cobaDua } from "../../repositories/scraperRepository.js";
+import { scrapePddikti } from "../../repositories/scraperRepository.js";
 
 const universityPddiktiService= async () => {
-  const university= await cobaDua();
+  const university= await scrapePddikti();
 
   return university;
 }

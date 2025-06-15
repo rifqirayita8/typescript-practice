@@ -4,7 +4,11 @@ import getUniversitiesService from "../../services/scraping/universityScrapeServ
 const getUniversitiesController= async(req: Request, res: Response, next: NextFunction) => {
   try {
     const universities= await getUniversitiesService();
-    res.json(universities);
+    res.status(200).json({
+      status: "true",
+      message: "Data universitas berhasil diambil.",
+      payload: universities
+    })
   } catch(e:any) {
     next(e);
     console.log(e.message);

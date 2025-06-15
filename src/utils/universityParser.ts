@@ -9,6 +9,7 @@ interface ParsedUniversitas {
   latitude: number;
   longitude: number;
   major_count: number | null;
+  acceptance_rate: number | null;
 }
 
 const akreditasiMap: Record<string, 'A' | 'B' | 'C'> = {
@@ -49,6 +50,13 @@ function parseAkreditasi(akreditasi: string): string {
   return akreditasiMap[akreditasi] ?? akreditasi;
 }
 
+function parseAcceptanceRate(rate: number | null): number {
+  if (rate === null) return 99;
+  if (rate === 0) return 99;
+  if (rate > 100) return 99;
+  return rate;
+}
+
 export async function getParsedUniversitas(): Promise<ParsedUniversitas[]> {
   const rawUniversitas = await findAllUniversitas();
   const tuition_fee = rawUniversitas.map((univ) => univ.tuition_fee);
@@ -59,6 +67,7 @@ export async function getParsedUniversitas(): Promise<ParsedUniversitas[]> {
     const pass_percentage = parsePersentase(univ.pass_percentage ?? "0%");
     const accreditation = parseAkreditasi(univ.accreditation);
     const major_count = parseJurusan(univ.major_count ?? "0");
+    const acceptance_rate = parseAcceptanceRate(univ.acceptanceRate);
 
     return {
       name: univ.name,
@@ -67,7 +76,8 @@ export async function getParsedUniversitas(): Promise<ParsedUniversitas[]> {
       pass_percentage,
       latitude: univ.latitude,
       longitude: univ.longitude,
-      major_count
+      acceptance_rate,
+      major_count,
     };
   });
 }

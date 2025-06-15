@@ -17,7 +17,7 @@ const userRankInput= async(req: Request, res: Response, next: NextFunction):Prom
     res.status(200).json({
       status: "true",
       message: "Berhasil input kriteria.",
-      data: "sontol", result
+      data:  "sontol", result
     })
   }catch(err) {
     next(err);
