@@ -59,10 +59,10 @@ function parseAcceptanceRate(rate: number | null): number {
 
 export async function getParsedUniversitas(): Promise<ParsedUniversitas[]> {
   const rawUniversitas = await findAllUniversitas();
-  const tuition_fee = rawUniversitas.map((univ) => univ.tuition_fee);
+  const tuition_fee = rawUniversitas.map((univ:any) => univ.tuition_fee);
   fs.writeFileSync("tuition_fee_parser.json", JSON.stringify(tuition_fee, null, 2));
 
-  return rawUniversitas.map((univ) => {
+  return rawUniversitas.map((univ:any) => {
     const [tuition_fee_min, tuition_fee_max, tuition_fee] = parseBiaya(univ.tuition_fee ?? "Rp. 0,-");
     const pass_percentage = parsePersentase(univ.pass_percentage ?? "0%");
     const accreditation = parseAkreditasi(univ.accreditation);
