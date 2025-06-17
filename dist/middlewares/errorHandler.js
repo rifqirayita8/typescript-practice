@@ -16,7 +16,7 @@ const errorHandler = (err, req, res, next) => {
         }));
         return res.status(400).json({
             status: "false",
-            message: "Data tidak sesuai.",
+            message: "Validasi Gagal.",
             error: zodError
         });
     }

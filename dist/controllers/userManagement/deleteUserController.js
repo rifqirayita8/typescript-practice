@@ -7,23 +7,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import loginService from "../../services/auth/loginService.js";
-import { ValidationError } from "../../utils/customError.js";
-const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+import deleteUserService from "../../services/userManagement/deleteUserService.js";
+const deleteUserController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = parseInt(req.params.id, 10);
     try {
-        const data = req.body;
-        if (!data) {
-            throw new ValidationError('Semua field harus diisi.');
-        }
-        const { token } = yield loginService(data);
+        const user = yield deleteUserService(userId);
         res.status(200).json({
             status: "true",
-            message: "Login berhasil.",
-            token: token
+            message: "User berhasil dihapus.",
+            payload: user
         });
     }
     catch (err) {
         next(err);
     }
 });
-export default userLogin;
+export default deleteUserController;

@@ -7,23 +7,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import loginService from "../../services/auth/loginService.js";
-import { ValidationError } from "../../utils/customError.js";
-const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const data = req.body;
-        if (!data) {
-            throw new ValidationError('Semua field harus diisi.');
+import prisma from "../config/prismaClient.js";
+import { sendWelcomeEmail } from "../utils/emailHelper.js";
+export const createUser = (data) => __awaiter(void 0, void 0, void 0, function* () {
+    const newUser = yield prisma.user.create({
+        data: {
+            username: data.username,
+            email: data.email,
+            password: data.password,
+            role: data.role
         }
-        const { token } = yield loginService(data);
-        res.status(200).json({
-            status: "true",
-            message: "Login berhasil.",
-            token: token
-        });
-    }
-    catch (err) {
-        next(err);
-    }
+    });
+    yield sendWelcomeEmail(newUser.email, newUser.username);
+    return newUser;
 });
-export default userLogin;
+export const findUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield prisma.user.findUnique({
+        where: {
+            email: email
+        }
+    });
+});

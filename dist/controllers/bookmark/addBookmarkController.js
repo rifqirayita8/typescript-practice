@@ -7,23 +7,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import loginService from "../../services/auth/loginService.js";
-import { ValidationError } from "../../utils/customError.js";
-const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+import addBookmark from "../../services/bookmark/addBookmarkService.js";
+const addBookmarkController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = req.body;
-        if (!data) {
-            throw new ValidationError('Semua field harus diisi.');
-        }
-        const { token } = yield loginService(data);
-        res.status(200).json({
+        const { userId, universityId } = req.body;
+        yield addBookmark(userId, universityId);
+        res.status(201).json({
             status: "true",
-            message: "Login berhasil.",
-            token: token
+            message: "Bookmark berhasil ditambahkan."
         });
     }
     catch (err) {
         next(err);
     }
 });
-export default userLogin;
+export default addBookmarkController;

@@ -7,23 +7,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import loginService from "../../services/auth/loginService.js";
-import { ValidationError } from "../../utils/customError.js";
-const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const data = req.body;
-        if (!data) {
-            throw new ValidationError('Semua field harus diisi.');
-        }
-        const { token } = yield loginService(data);
-        res.status(200).json({
-            status: "true",
-            message: "Login berhasil.",
-            token: token
-        });
+import { updateUser } from "../../repositories/userManagementRepository.js";
+import bcrypt from 'bcrypt';
+const updateUserService = (id, data) => __awaiter(void 0, void 0, void 0, function* () {
+    if (data.password) {
+        const hashedPassword = yield bcrypt.hash(data.password, 10);
+        data.password = hashedPassword;
     }
-    catch (err) {
-        next(err);
-    }
+    const user = yield updateUser(id, data);
+    return user;
 });
-export default userLogin;
+export default updateUserService;

@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import bcrypt from 'bcrypt';
-import { createUser } from '../../repositories/auth/authRepository.js';
+import { createUser } from '../../repositories/authRepository.js';
 import { registerValidation } from '../../validations/auth/registerValidation.js';
 const registerService = (data) => __awaiter(void 0, void 0, void 0, function* () {
     registerValidation(data);

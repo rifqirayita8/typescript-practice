@@ -41,7 +41,7 @@ const ahp = new AHP();
   distance: d.distance
 }));
 
-// fs.writeFileSync('distanceOnly.json', JSON.stringify(distancesOnly, null, 2));
+fs.writeFileSync('distanceOnly.json', JSON.stringify(distancesOnly, null, 2));
 
 
   parsed.forEach(p => {
@@ -50,7 +50,7 @@ const ahp = new AHP();
     }
   });
   
-  function getDistanceScore(distance: number): number {
+function getDistanceScore(distance: number): number {
   const smoothScore = 1 / (1 + distance / 1000);
   const maxDistanceAllowed = 1500;
 
@@ -66,11 +66,9 @@ const ahp = new AHP();
   const maxBiaya = Math.max(...parsed.map(p => p.tuition_fee));
   const minBiaya = Math.min(...parsed.map(p => p.tuition_fee));
   const maxRate = Math.max(...parsed.map(p => p.pass_percentage));
-  const maxDistance = Math.max(...parsed.map(p => p.distance));
-  const minDistance = Math.min(...parsed.map(p => p.distance));
   const maxMajorCount = Math.max(...parsed.map(p => p.major_count)); 
   const minAcceptanceRate = Math.min(...parsed.map(p => p.acceptance_rate));
-  const maxAcceptanceRate= Math.max(...parsed.map(p => p.acceptance_rate));
+  const acceptanceMaxVal= Math.log(1 / (minAcceptanceRate / 100))
 
   const normalized = parsed.map(p => ({
     ...p,
@@ -79,8 +77,8 @@ const ahp = new AHP();
     passRate: (p.pass_percentage / maxRate),
     // distanceScore: (maxDistance - p.distance) / (maxDistance - minDistance),
     distanceScore: getDistanceScore(p.distance), 
-    major_count: p.major_count / maxMajorCount,
-    acceptance_rate: (100 - p.acceptance_rate) / (100 - minAcceptanceRate)
+    major_count: Math.sqrt(p.major_count) / Math.sqrt(maxMajorCount),
+    acceptance_rate: Math.log(1 / (p.acceptance_rate / 100)) / acceptanceMaxVal,
   }));
 
   // fs.writeFileSync('acceptanceRate.json', JSON.stringify(parsed.map(p => p.acceptance_rate), null, 2));
@@ -202,10 +200,10 @@ const ahp = new AHP();
   // const tuition_fee = parsed.map(p => p.tuition_fee);
   // fs.writeFileSync('normalizedBiaya.json', JSON.stringify(normalizedBiaya, null, 2));
   // console.log("normalized: ", normalized.map(p => p.biaya));
-  // console.log('minBiaya:', minBiaya);
-  // console.log('maxBiaya:', maxBiaya);
-  // console.log('maxJumlahJurusan:', maxMajorCount);
-  // console.log('maxtingkatKeterimaan:', maxAcceptanceRate);
+  console.log('minBiaya:', minBiaya);
+  console.log('maxBiaya:', maxBiaya);
+  console.log('maxJumlahJurusan:', maxMajorCount);
+  console.log('mintingkatKeterimaan:', minAcceptanceRate);
   // console.log('maxDistance:', maxDistance);
   // console.log('minDistance:', minDistance);
   console.log("criteriaWeights (backend):", criteriaWeights);

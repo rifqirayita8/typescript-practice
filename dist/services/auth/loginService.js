@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import bcrypt from "bcrypt";
-import { findUserByEmail } from "../../repositories/auth/authRepository.js";
+import { findUserByEmail } from "../../repositories/authRepository.js";
 import { loginValidation } from "../../validations/auth/loginValidation.js";
 import { NotFoundError, ValidationError } from "../../utils/customError.js";
 import { generateToken } from "../../utils/jwtHelper.js";
@@ -18,11 +18,12 @@ const loginService = (data) => __awaiter(void 0, void 0, void 0, function* () {
     if (!user) {
         throw new NotFoundError('Email belum terdaftar.');
     }
-    const isValidPassowrd = yield bcrypt.compare(data.password, user.password);
-    if (!isValidPassowrd) {
+    const isValidPassword = yield bcrypt.compare(data.password, user.password);
+    if (!isValidPassword) {
         throw new ValidationError('Password salah.');
     }
-    const token = generateToken(user);
+    const userWithValidRole = Object.assign(Object.assign({}, user), { role: user.role });
+    const token = generateToken(userWithValidRole);
     return { token, user };
 });
 export default loginService;

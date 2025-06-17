@@ -7,23 +7,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import loginService from "../../services/auth/loginService.js";
-import { ValidationError } from "../../utils/customError.js";
-const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const data = req.body;
-        if (!data) {
-            throw new ValidationError('Semua field harus diisi.');
+import prisma from "../config/prismaClient.js";
+export const createOtp = (email, otp, expiresAt) => __awaiter(void 0, void 0, void 0, function* () {
+    return prisma.oTP.create({
+        data: {
+            email,
+            otp,
+            expiresAt,
         }
-        const { token } = yield loginService(data);
-        res.status(200).json({
-            status: "true",
-            message: "Login berhasil.",
-            token: token
-        });
-    }
-    catch (err) {
-        next(err);
-    }
+    });
 });
-export default userLogin;
+export const findOtp = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    return prisma.oTP.findFirst({
+        where: { email },
+        orderBy: { createdAt: 'desc' }
+    });
+});
+export const deleteOtp = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    return prisma.oTP.deleteMany({
+        where: { email }
+    });
+});

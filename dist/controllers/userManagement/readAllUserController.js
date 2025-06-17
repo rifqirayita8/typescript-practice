@@ -7,23 +7,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import loginService from "../../services/auth/loginService.js";
+import readAllUserService from "../../services/userManagement/readAllUserService.js";
 import { ValidationError } from "../../utils/customError.js";
-const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const readAllUserController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = req.body;
-        if (!data) {
-            throw new ValidationError('Semua field harus diisi.');
+        const page = parseInt(req.query.page || "1", 10);
+        const limit = 10;
+        if (isNaN(page) || isNaN(limit) || page <= 0 || limit <= 0) {
+            throw new ValidationError("Query page dan limit harus berupa angka dan lebih besar dari 0.");
         }
-        const { token } = yield loginService(data);
+        const users = yield readAllUserService(page, limit);
         res.status(200).json({
             status: "true",
-            message: "Login berhasil.",
-            token: token
+            message: "Data user berhasil didapatkan.",
+            payload: users,
         });
     }
     catch (err) {
         next(err);
     }
 });
-export default userLogin;
+export default readAllUserController;

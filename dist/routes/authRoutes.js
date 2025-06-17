@@ -1,11 +1,11 @@
 import express from 'express';
 import userRegister from '../controllers/auth/registerController.js';
 import userLogin from '../controllers/auth/loginController.js';
-const app = express.Router();
-app.post('/register', (req, res, next) => {
-    userRegister(req, res, next);
-});
-app.post('/login', (req, res, next) => {
-    userLogin(req, res, next);
-});
-export default app;
+import { generateOTPController, verifyOTPController } from '../controllers/auth/otpController.js';
+import otpRateLimiter from '../middlewares/otpMiddleware.js';
+const authRoutes = express.Router();
+authRoutes.post('/register', userRegister);
+authRoutes.post('/login', userLogin);
+authRoutes.post('/request-otp', otpRateLimiter, generateOTPController);
+authRoutes.post('/verify-otp', verifyOTPController);
+export default authRoutes;

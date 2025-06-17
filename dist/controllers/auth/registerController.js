@@ -11,9 +11,18 @@ import { ValidationError } from "../../utils/customError.js";
 import registerService from "../../services/auth/registerService.js";
 const userRegister = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { username, email, password, confirmPassword, role } = req.body;
-        if (!username || !email || !password || !confirmPassword) {
-            throw new ValidationError("Semua field harus diisi.");
+        const { username, email, password, confirmPassword, role = 'user' } = req.body;
+        const missingFields = [];
+        if (!username)
+            missingFields.push("username");
+        if (!email)
+            missingFields.push("email");
+        if (!password)
+            missingFields.push("password");
+        if (!confirmPassword)
+            missingFields.push("confirmPassword");
+        if (missingFields.length > 0) {
+            throw new ValidationError(`Field berikut harus diisi: ${missingFields.join(", ")}`);
         }
         if (password != confirmPassword) {
             throw new ValidationError("Password dan konfirmasi password tidak sama.");
@@ -22,7 +31,7 @@ const userRegister = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         res.status(201).json({
             status: "true",
             message: "User berhasil ditambahkan.",
-            user: user,
+            payload: user,
         });
     }
     catch (error) {

@@ -7,23 +7,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import loginService from "../../services/auth/loginService.js";
-import { ValidationError } from "../../utils/customError.js";
-const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+import getUniversitiesService from "../../services/scraping/universityScrapeService.js";
+const getUniversitiesController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = req.body;
-        if (!data) {
-            throw new ValidationError('Semua field harus diisi.');
-        }
-        const { token } = yield loginService(data);
+        const universities = yield getUniversitiesService();
         res.status(200).json({
             status: "true",
-            message: "Login berhasil.",
-            token: token
+            message: "Data universitas berhasil diambil.",
+            payload: universities
         });
     }
-    catch (err) {
-        next(err);
+    catch (e) {
+        next(e);
+        console.log(e.message);
     }
 });
-export default userLogin;
+export default getUniversitiesController;

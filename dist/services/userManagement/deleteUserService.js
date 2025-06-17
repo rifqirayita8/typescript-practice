@@ -7,23 +7,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import loginService from "../../services/auth/loginService.js";
-import { ValidationError } from "../../utils/customError.js";
-const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const data = req.body;
-        if (!data) {
-            throw new ValidationError('Semua field harus diisi.');
-        }
-        const { token } = yield loginService(data);
-        res.status(200).json({
-            status: "true",
-            message: "Login berhasil.",
-            token: token
-        });
+import { deleteUser, findUserbyId } from "../../repositories/userManagementRepository.js";
+import { NotFoundError } from "../../utils/customError.js";
+const deleteUserService = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const isValidUser = yield findUserbyId(id);
+    if (!isValidUser) {
+        throw new NotFoundError("User tidak ditemukan.");
     }
-    catch (err) {
-        next(err);
-    }
+    const user = yield deleteUser(id);
+    return user;
 });
-export default userLogin;
+export default deleteUserService;
