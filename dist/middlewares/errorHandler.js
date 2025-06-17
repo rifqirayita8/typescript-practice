@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AppError } from "../utils/customError.js";
-import { Prisma } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 const errorHandler = (err, req, res, next) => {
     var _a;
     if (err instanceof AppError) {
@@ -20,7 +20,7 @@ const errorHandler = (err, req, res, next) => {
             error: zodError
         });
     }
-    else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    else if (err instanceof PrismaClientKnownRequestError) {
         if (err.code === "P2002" && ((_a = err.meta) === null || _a === void 0 ? void 0 : _a.target)) {
             const fieldName = Array.isArray(err.meta.target) ? err.meta.target[0] : undefined;
             let message = `${fieldName} sudah digunakan. Silakan gunakan ${fieldName} lain.`;
