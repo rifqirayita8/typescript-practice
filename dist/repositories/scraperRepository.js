@@ -13,31 +13,29 @@ import Papa from 'papaparse';
 import * as cheerio from 'cheerio';
 import puppeteer from 'puppeteer';
 export const scrapeUniversities = () => __awaiter(void 0, void 0, void 0, function* () {
-    const url = 'https://sidatagrun-public-1076756628210.asia-southeast2.run.app/ptn_sb.php';
-    const { data: mainHtml } = yield axios.get(url);
-    //iki podo karo = const response= await axios.get(url); \n const mainHtml= response.data;
-    const $ = cheerio.load(mainHtml);
+    const urls = [
+        'https://sidatagrun-public-1076756628210.asia-southeast2.run.app/ptn_sb.php',
+        'https://sidatagrun-public-1076756628210.asia-southeast2.run.app/ptn_sb.php?ptn=-2',
+        'https://sidatagrun-public-1076756628210.asia-southeast2.run.app/ptn_sb.php?ptn=-3'
+    ];
+    const htmlResponses = yield Promise.all(urls.map(url => axios.get(url)));
     const universities = [];
-    $('table tbody tr').each((index, element) => {
-        // const nameElement= $(element).find('td:nth-child(3) a');
-        const id = $(element).find('td:nth-child(2)').text().trim();
-        const name = $(element).find('td:nth-child(3)').text().trim();
-        const cleanedName = name.replace(/\n.*$/, '');
-        const city = $(element).find('td:nth-child(4)').text().trim();
-        const province = $(element).find('td:nth-child(5)').text().trim();
-        // const detailUrl= url + nameElement.attr('href');
-        universities.push({
-            id,
-            universityName: cleanedName,
-            city,
-            province
+    for (const response of htmlResponses) {
+        const $ = cheerio.load(response.data);
+        $('table tbody tr').each((index, element) => {
+            const id = $(element).find('td:nth-child(2)').text().trim();
+            const name = $(element).find('td:nth-child(3)').text().trim();
+            const cleanedName = name.replace(/\n.*$/, '');
+            const city = $(element).find('td:nth-child(4)').text().trim();
+            const province = $(element).find('td:nth-child(5)').text().trim();
+            universities.push({
+                id,
+                universityName: cleanedName,
+                city,
+                province
+            });
         });
-    });
-    // for (const university of universities) {
-    //   if (university.detailUrl) {
-    //     university.majors= await scrapeMajors(university.detailUrl);
-    //   }
-    // }
+    }
     return universities;
 });
 export const scrapeMajors = (url) => __awaiter(void 0, void 0, void 0, function* () {
@@ -59,54 +57,6 @@ export const scrapeMajors = (url) => __awaiter(void 0, void 0, void 0, function*
     const filteredMajors = majors.filter(major => major.name.length <= 50);
     return filteredMajors;
 });
-export function scrapePTN() {
-    return __awaiter(this, void 0, void 0, function* () {
-        //   const browser: Browser = await puppeteer.launch({ headless: true }); // headless: true agar browser tidak muncul
-        //   const page: Page = await browser.newPage();
-        //   // Buka halaman URL
-        //   await page.goto('https://pddikti.kemdiktisaintek.go.id/perguruan-tinggi', {
-        //       waitUntil: 'domcontentloaded', // Tunggu hingga halaman dimuat
-        //   });
-        //   // Pilih filter PTN dengan klik (sesuaikan dengan selector elemen filter PTN)
-        //   // const [inputElement] = await page.$x('//span[contains(text(), "PTN")]/following-sibling::input');
-        //   // if (inputElement) {
-        //   //     await inputElement.click();
-        //   // } else {
-        //   //     console.log('Elemen filter PTN tidak ditemukan');
-        //   // }
-        //   // await page.waitForSelector('1000')  // Tunggu sebentar agar filter diterapkan
-        //   // Pilih jumlah data yang ditampilkan per halaman, misalnya 48
-        //   // Ambil data PTN setelah interaksi
-        //   const ptnData: PTN[] = await page.evaluate(() => {
-        //     const ptnList: PTN[] = [];
-        //     const items = document.querySelectorAll('.w-[302px].h-[380px].flex.flex-col');
-        //     items.forEach(item => {
-        //         const name = item.querySelector('p.text-black') ? (item.querySelector('p.text-black') as HTMLElement).innerText : '';
-        //         const location = item.querySelector('h5.line-clamp-2') ? (item.querySelector('h5.line-clamp-2') as HTMLElement).innerText : '';
-        //         const accreditation = item.querySelector('.flex.items-center.gap-2 > p') ? (item.querySelector('.flex.items-center.gap-2 > p') as HTMLElement).innerText : '';
-        //         const programCount = item.querySelector('.flex.items-center.gap-2 > p:nth-child(2)') ? (item.querySelector('.flex.items-center.gap-2 > p:nth-child(2)') as HTMLElement).innerText : '';
-        //         ptnList.push({ name, location, accreditation, programCount });
-        //     });
-        //     return ptnList;
-        // });
-        //   await browser.close(); // Tutup browser setelah selesai
-    });
-}
-// export const scrapeCoba= async() => {
-//   const browser= await puppeteer.launch({
-//     headless: true,
-//   })
-//   const page= await browser.newPage();
-//   await page.goto('https://pddikti.kemdiktisaintek.go.id/perguruan-tinggi')
-//   const ptnHandles= await page.$$('w-full pt-5 flex flex-wrap gap-4 ml-2')
-//   for (const ptnHandle of ptnHandles) {
-//     try {
-//       const ptnName= await page.evaluate(el => el.querySelector('div.px-4.mt-1.text-sm > h5')?.textContent, ptnHandle)
-//       if(ptnName) console.log(ptnName);
-//     } catch(e) {
-//     }
-//   } 
-// }
 export const scrapePddikti = () => __awaiter(void 0, void 0, void 0, function* () {
     const browser = yield puppeteer.launch({
         headless: false,
@@ -122,7 +72,6 @@ export const scrapePddikti = () => __awaiter(void 0, void 0, void 0, function* (
         waitUntil: 'networkidle2',
         timeout: 0
     });
-    //container
     yield page.waitForSelector('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div');
     yield page.waitForSelector('#\\:r8\\:');
     yield page.click('#\\:r8\\:');
@@ -135,7 +84,6 @@ export const scrapePddikti = () => __awaiter(void 0, void 0, void 0, function* (
             const el = document.querySelector('div.grid.grid-cols-2.gap-3.px-4.text-sm > div:nth-child(3) > p');
             return el && ((_a = el.textContent) === null || _a === void 0 ? void 0 : _a.trim()) !== "...";
         });
-        // Ambil semua universitas di halaman ini
         const productsHandles = yield page.$$('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div');
         for (const productHandle of productsHandles) {
             const data = yield page.evaluate(el => {
@@ -159,17 +107,13 @@ export const scrapePddikti = () => __awaiter(void 0, void 0, void 0, function* (
             }, productHandle);
             universities.push(data);
         }
-        // Cek apakah tombol "Next" aktif
         const isNextDisabled = yield page.evaluate(() => {
             const nextButton = document.querySelector('div.flex.align-end.items-center.justify-end.gap-1 > button:nth-child(3)');
             return (nextButton === null || nextButton === void 0 ? void 0 : nextButton.hasAttribute('disabled')) || false;
         });
         if (isNextDisabled)
-            break; // Keluar dari loop jika tidak bisa next
-        // Klik tombol Next
-        // Tunggu tombol "Next" muncul sebelum klik
+            break;
         yield page.waitForSelector('div.flex.align-end.items-center.justify-end.gap-1 > button:nth-child(3)', { visible: true });
-        // Klik tombol Next
         yield page.click('div.flex.align-end.items-center.justify-end.gap-1 > button:nth-child(3)');
     }
     const formattedUniversities = universities.map(uni => ({
@@ -199,11 +143,9 @@ export const cobaTiga = () => __awaiter(void 0, void 0, void 0, function* () {
         waitUntil: 'networkidle2',
         timeout: 0
     });
-    // Tunggu container utama
     yield page.waitForSelector('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div');
-    // Pilih pagination 48 per halaman
     yield page.select('select[name="pagination"]', '48');
-    const allMajors = []; // Array untuk menyimpan jurusan per universitas
+    const allMajors = [];
     while (true) {
         yield page.waitForSelector('div.relative.h-24.flex.items-center > div > div > p');
         const universityHandles = yield page.$$('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div');
@@ -212,18 +154,15 @@ export const cobaTiga = () => __awaiter(void 0, void 0, void 0, function* () {
             if (detailButton) {
                 yield detailButton.click();
                 yield page.waitForNavigation({ waitUntil: 'networkidle2' });
-                // Ambil jurusan dari halaman detail
                 const majors = yield page.evaluate(() => {
                     return Array.from(document.querySelectorAll('div.px-6 > div:nth-child(2) > div > div > div > h1'))
                         .map(el => { var _a; return ((_a = el.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || ''; });
                 });
                 allMajors.push(majors);
-                // Kembali ke halaman utama
                 yield page.goBack();
                 yield page.waitForSelector('.w-full.pt-5.flex.flex-wrap.gap-4.ml-2 > div');
             }
         }
-        // Cek apakah tombol "Next" masih bisa diklik
         const isNextDisabled = yield page.evaluate(() => {
             var _a;
             const nextButton = document.querySelector('button img[alt="right"]');
