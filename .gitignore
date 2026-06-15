@@ -3,19 +3,19 @@ tmp
 # Keep environment variables out of version control
 page.html
 # Ignore log files
-biayaGabungan.json
-debugData.json
-distanceOnly.json
-normalizedBiaya.json
-tripletAkreditasi.json
-tripletBiaya.json
-tripletJarak.json
-tripletJumlahJurusan.json
-tripletPassRate.json
-tuition_fee_parser.json
-PTN.csv
-ptn_with_lat_long.csv
-triplettingkatKeterimaan.json
-coba.json
-acceptanceRate.json
-hitung.js
+# biayaGabungan.json
+# debugData.json
+# distanceOnly.json
+# normalizedBiaya.json
+# tripletAkreditasi.json
+# tripletBiaya.json
+# tripletJarak.json
+# tripletJumlahJurusan.json
+# tripletPassRate.json
+# tuition_fee_parser.json
+# PTN.csv
+# ptn_with_lat_long.csv
+# triplettingkatKeterimaan.json
+# coba.json
+# acceptanceRate.json
+# hitung.js
